@@ -54,6 +54,7 @@ def main():
     for checkpoint_file in sorted(os.listdir(args.checkpoint_dir)):
         checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_file)
         model = ModelClass().to(DEVICE)
+        print(f'Evaluated: {checkpoint_path}')
         model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
 
         # Evaluate on training data
@@ -76,6 +77,7 @@ def main():
     plt.title('Training Loss over Epochs')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.legend()
 
     plt.subplot(2, 2, 2)
@@ -83,6 +85,7 @@ def main():
     plt.title('Training Accuracy over Epochs')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.legend()
 
     # Plot validation loss and accuracy
@@ -91,6 +94,7 @@ def main():
     plt.title('Validation Loss over Epochs')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.legend()
 
     plt.subplot(2, 2, 4)
@@ -98,6 +102,7 @@ def main():
     plt.title('Validation Accuracy over Epochs')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.legend()
 
     plt.tight_layout()
