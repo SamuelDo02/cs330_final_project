@@ -12,11 +12,8 @@ from util.data_util import load_data, DatasetType  # Ensure DatasetType is impor
 import util.net_util as net_util
 import models
 
-# Multiprocessing
-import multiprocessing as mp
-mp.set_start_method('spawn', force=True)
-
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
+DEVICE = "cpu"
 VALIDATION_SUBSET_SIZE = 1000
 
 def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_SUBSET_SIZE):
