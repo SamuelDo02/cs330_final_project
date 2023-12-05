@@ -58,6 +58,7 @@ def main():
     parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], default='FashionMNIST', help='Dataset to use')
     parser.add_argument('--load-model', type=str, default=None, help='Path to load the pre-trained model')
     parser.add_argument('--checkpoint-interval', type=int, default=CHECKPOINT_INTERVAL_DEFAULT, help='Interval for saving model checkpoints')
+    parser.add_argument('--checkpoint-dir', type=str, default=CHECKPOINT_DIR, help='Directory to save checkpoints to')
     args = parser.parse_args()
 
     # Convert dataset argument to enum
@@ -67,7 +68,7 @@ def main():
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Create a dataset-specific checkpoint directory
-    dataset_checkpoint_dir = os.path.join(CHECKPOINT_DIR, args.dataset)
+    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset)
     os.makedirs(dataset_checkpoint_dir, exist_ok=True)
 
     # Load data
