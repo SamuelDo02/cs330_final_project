@@ -40,7 +40,7 @@ class ReductionMLP(nn.Module):
         for layer in original_model.model:
             if isinstance(layer, nn.Linear):
                 # Duplicate the layer
-                new_layer = nn.Linear(layer.in_features, layer.out_features)
+                new_layer = nn.Linear(layer.in_features, layer.in_features)
                 if copy_weights:
                     new_layer.load_state_dict(layer.state_dict())
 
