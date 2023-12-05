@@ -68,24 +68,25 @@ class ReductionMLP(nn.Module):
 def init_model(dataset_type: DatasetType, 
                model_str: str, 
                load_model: str = None, 
-               load_base_model: str = None):
+               load_base_model: str = None,
+               device: str = DEVICE):
     assert model_str in ['MLP', 'ReductionMLP']
 
     # Init model
     if model_str == 'MLP':
         hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
-        model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
+        model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(device)
     elif model_str == 'ReductionMLP':
         hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
         original_model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes)
         
         if load_base_model: # Load required base model if no pre-trained model
-            original_model.load_state_dict(torch.load(load_base_model, map_location=DEVICE))
-            original_model.to(DEVICE)
+            original_model.load_state_dict(torch.load(load_base_model, map_location=device))
+            original_model.to(device)
         elif not load_model:
             raise Exception('Base MLP not provided.')
         
-        model = ReductionMLP(original_model).to(DEVICE)
+        model = ReductionMLP(original_model).to(device)
         
     # Load pre-trained model if specified
     if load_model:

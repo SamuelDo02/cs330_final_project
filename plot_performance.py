@@ -64,7 +64,7 @@ def evaluate_checkpoint(model_class,
     print(f'Evaluating: {checkpoint_path}')
 
     # Load model weights from checkpoint
-    model = models.init_model(dataset_type, model_class, checkpoint_path)
+    model = models.init_model(dataset_type, model_class, checkpoint_path, device=DEVICE)
     model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
     model.to(DEVICE)
 
