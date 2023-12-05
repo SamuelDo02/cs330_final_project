@@ -48,7 +48,7 @@ def load_data(dataset_type=DatasetType.FashionMNIST, train=True, transform=None,
     return data_loader
 
 
-def load_flipped_data(dataset_type=DatasetType.FASHION_MNIST, train=True):
+def load_flipped_data(dataset_type=DatasetType.FashionMNIST, train=True):
     properties = dataset_type.value
     transform = transforms.Compose([
         transforms.ToTensor(),
