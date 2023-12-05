@@ -108,7 +108,7 @@ def main():
                 futures.append(future)
             
             for future in concurrent.futures.as_completed(futures):
-                eval_result : EvalResult = checkpoint
+                eval_result : EvalResult = future.result
                 metrics[checkpoint_dir][eval_result.metadata.checkpoint_idx] = eval_result
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
