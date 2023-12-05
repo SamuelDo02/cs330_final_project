@@ -77,7 +77,7 @@ def main():
 
     # Initialize the model, optimizer, and loss function
     model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
-    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
+    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=MOMENTUM)
     loss_function = nn.CrossEntropyLoss()
 
     # Load pre-trained model if specified
