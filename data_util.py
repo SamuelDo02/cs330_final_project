@@ -4,6 +4,8 @@ from enum import Enum
 import torch
 from torchvision import datasets, transforms
 
+import os
+
 @dataclass
 class DatasetProperties:
     dataset_class: torch.utils.data.Dataset
@@ -30,7 +32,7 @@ class DatasetType(Enum):
     )
 
 
-def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None, num_workers=4):
+def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None, num_workers=os.cpu_count()):
     properties = dataset_type.value
     if transform is None:
         # Default transformations
