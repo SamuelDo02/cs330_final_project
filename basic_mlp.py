@@ -12,7 +12,7 @@ import layer_util
 LEARNING_RATE = 0.01  # Learning rate
 MOMENTUM = 0.9        # Momentum
 WEIGHT_DECAY = 0.01   # Weight decay
-NUM_EPOCHS = 300    # Number of epochs
+NUM_EPOCHS = 2000    # Number of epochs
 CHECKPOINT_INTERVAL_DEFAULT = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 CHECKPOINT_DIR = "checkpoints"  # Directory for checkpoints
