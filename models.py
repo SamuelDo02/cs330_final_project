@@ -58,6 +58,35 @@ class ReductionMLP(nn.Module):
     def forward(self, x):
         x = x.view(x.size(0), -1) # Flatten the image
         return F.log_softmax(self.model(x), dim=1)
+    
+
+def init_model(dataset_type: DatasetType, 
+               model_str: str, 
+               load_model: str = None, 
+               load_base_model: str = None):
+    assert model_str in ['MLP', 'ReductionMLP']
+
+    # Init model
+    if model_str == 'MLP':
+        hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
+        model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
+    elif model_str == 'ReductionMLP':
+        hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
+        original_model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes)
+        
+        if load_base_model: # Load required base model if no pre-trained model
+            original_model.load_state_dict(torch.load(load_base_model, map_location=DEVICE))
+            original_model.to(DEVICE)
+        elif not load_model:
+            raise Exception('Base MLP not provided.')
+        
+        model = ReductionMLP(original_model).to(DEVICE)
+        
+    # Load pre-trained model if specified
+    if load_model:
+        model.load_state_dict(torch.load(load_model, map_location=DEVICE))
+
+    return model
 
 
 def add_common_arguments(parser):
@@ -88,18 +117,7 @@ def main():
     dataset_type = DatasetType[args.dataset]
 
     # Init model
-    if args.model == 'MLP':
-        hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
-        model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
-    elif args.model == 'ReductionMLP':
-        hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
-        original_model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes)
-        if args.load_base_model:
-            original_model.load_state_dict(torch.load(args.load_base_model, map_location=DEVICE))
-            original_model.to(DEVICE)
-            model = ReductionMLP(original_model).to(DEVICE)
-        else:
-            raise Exception('Base MLP not provided.')
+    model = init_model(dataset_type, args.model, args.load_model, args.load_base_model)
 
     # Create a dataset-specific checkpoint directory
     dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"{args.model}_lr-{args.learning_rate}_{args.dataset}")
@@ -111,10 +129,6 @@ def main():
     # Initialize optimizer and argument
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=MOMENTUM)
     loss_function = nn.CrossEntropyLoss()
-
-    # Load pre-trained model if specified
-    if args.load_model:
-        model.load_state_dict(torch.load(args.load_model, map_location=DEVICE))
 
     # Train
     for epoch in range(NUM_EPOCHS):
