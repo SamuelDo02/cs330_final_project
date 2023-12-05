@@ -30,7 +30,7 @@ class DatasetType(Enum):
     )
 
 
-def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None):
+def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None, num_workers=4):
     properties = dataset_type.value
     if transform is None:
         # Default transformations
@@ -41,7 +41,7 @@ def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None
 
     # Load the specified dataset
     dataset = properties.dataset_class(root='./data', train=train, download=True, transform=transform)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=True)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
 
     return data_loader
 
