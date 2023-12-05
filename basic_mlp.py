@@ -4,7 +4,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+
 from data_util import load_data, DatasetType  # Ensure DatasetType is imported
+import util
 
 # Constants
 LEARNING_RATE = 0.01  # Learning rate
@@ -49,23 +51,10 @@ def train(model, device, train_loader, loss_function, optimizer, epoch, checkpoi
             print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
 
 
-def generate_layer_sizes(dataset_properties, min_layer_size=64, scale_factor=0.5):
-    layer_sizes = []
-    layer_size = dataset_properties.input_size
-
-    while True:
-        layer_size = int(layer_size * scale_factor)
-        if layer_size < min_layer_size or layer_size < dataset_properties.num_classes:
-            break
-        layer_sizes.append(layer_size)
-
-    return layer_sizes
-
-
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Train an MLP on different datasets')
-    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], default='FashionMNIST', help='Dataset to use (FashionMNIST or CIFAR10)')
+    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], default='FashionMNIST', help='Dataset to use')
     parser.add_argument('--load-model', type=str, default=None, help='Path to load the pre-trained model')
     parser.add_argument('--checkpoint-interval', type=int, default=CHECKPOINT_INTERVAL_DEFAULT, help='Interval for saving model checkpoints')
     args = parser.parse_args()
@@ -74,7 +63,7 @@ def main():
     dataset_type = DatasetType[args.dataset.upper()]
 
     # Generate hidden layer sizes based on dataset properties
-    hidden_layers_sizes = generate_layer_sizes(dataset_type.value)
+    hidden_layers_sizes = util.generate_layer_sizes(dataset_type.value)
 
     # Create a dataset-specific checkpoint directory
     dataset_checkpoint_dir = os.path.join(CHECKPOINT_DIR, args.dataset)

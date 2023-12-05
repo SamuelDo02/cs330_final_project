@@ -4,7 +4,10 @@ import importlib
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from data_util import load_data
+
+from data_util import load_data, DatasetType  # Ensure DatasetType is imported
+import util
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 VALIDATION_SUBSET_SIZE = 1000
@@ -29,15 +32,23 @@ def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_S
     accuracy = 100. * correct / subset_size
     return total_loss, accuracy
 
+
 def main():
     parser = argparse.ArgumentParser(description='Analyze Model Performance on MNIST')
     parser.add_argument('--model-file', type=str, required=True, help='Python file containing the model class (without .py extension)')
+    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], required=True, help='Dataset to use')
     parser.add_argument('--model-class', type=str, required=True, help='Name of the model class in the model file')
     parser.add_argument('--checkpoint-dir', type=str, required=True, help='Directory containing the model checkpoints')
     args = parser.parse_args()
 
     model_module = importlib.import_module(args.model_file)
     ModelClass = getattr(model_module, args.model_class)
+
+    # Convert dataset argument to enum
+    dataset_type = DatasetType[args.dataset.upper()]
+
+    # Generate hidden layer sizes based on dataset properties
+    hidden_layers_sizes = util.generate_layer_sizes(dataset_type.value)
 
     # Load training and test data
     train_loader = load_data(train=True)
@@ -53,7 +64,7 @@ def main():
 
     for checkpoint_file in sorted(os.listdir(args.checkpoint_dir)):
         checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_file)
-        model = ModelClass().to(DEVICE)
+        model = ModelClass(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
         print(f'Evaluated: {checkpoint_path}')
         model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
 
