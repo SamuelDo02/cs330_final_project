@@ -49,7 +49,6 @@ def main():
 
     # Generate hidden layer sizes based on dataset properties
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
-    print(hidden_layers_sizes)
 
     # Load training and test data
     train_loader = load_data(train=True)
@@ -66,6 +65,7 @@ def main():
     for checkpoint_file in sorted(os.listdir(args.checkpoint_dir)):
         checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_file)
         model = ModelClass(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
+        print(model.model)
         print(f'Evaluated: {checkpoint_path}')
         model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
 
