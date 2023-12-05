@@ -63,7 +63,7 @@ def main():
     args = parser.parse_args()
 
     # Convert dataset argument to enum
-    dataset_type = DatasetType[args.dataset.upper()]
+    dataset_type = DatasetType[args.dataset]
 
     # Generate hidden layer sizes based on dataset properties
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)

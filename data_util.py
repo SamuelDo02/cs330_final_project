@@ -16,7 +16,7 @@ class DatasetProperties:
 
 
 class DatasetType(Enum):
-    FASHIONMNIST = DatasetProperties(
+    FashionMNIST = DatasetProperties(
         dataset_class=datasets.FashionMNIST,
         input_size=28 * 28,
         num_classes=10,
@@ -32,7 +32,7 @@ class DatasetType(Enum):
     )
 
 
-def load_data(dataset_type=DatasetType.FASHION_MNIST, train=True, transform=None, num_workers=os.cpu_count()):
+def load_data(dataset_type=DatasetType.FashionMNIST, train=True, transform=None, num_workers=os.cpu_count()):
     properties = dataset_type.value
     if transform is None:
         # Default transformations
