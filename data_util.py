@@ -16,7 +16,7 @@ class DatasetProperties:
 
 
 class DatasetType(Enum):
-    FASHION_MNIST = DatasetProperties(
+    FASHIONMNIST = DatasetProperties(
         dataset_class=datasets.FashionMNIST,
         input_size=28 * 28,
         num_classes=10,
