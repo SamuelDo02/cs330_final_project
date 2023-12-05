@@ -65,7 +65,7 @@ def main():
             print(f'Evaluated: {checkpoint_path}')
 
             # Load model weights from checkpoint
-            model = models.init_model(dataset_type, model_class, checkpoint_dir)
+            model = models.init_model(dataset_type, model_class, checkpoint_path)
             model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
 
             with torch.no_grad():
