@@ -36,8 +36,8 @@ def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_S
 def main():
     parser = argparse.ArgumentParser(description='Analyze Model Performance on MNIST')
     parser.add_argument('--model-file', type=str, required=True, help='Python file containing the model class (without .py extension)')
-    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], required=True, help='Dataset to use')
     parser.add_argument('--model-class', type=str, required=True, help='Name of the model class in the model file')
+    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], required=True, help='Dataset to use')
     parser.add_argument('--checkpoint-dir', type=str, required=True, help='Directory containing the model checkpoints')
     args = parser.parse_args()
 
