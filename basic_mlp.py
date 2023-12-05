@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from data_util import load_data, DatasetType  # Ensure DatasetType is imported
-import util
+import layer_util
 
 # Constants
 LEARNING_RATE = 0.01  # Learning rate
@@ -63,7 +63,7 @@ def main():
     dataset_type = DatasetType[args.dataset.upper()]
 
     # Generate hidden layer sizes based on dataset properties
-    hidden_layers_sizes = util.generate_layer_sizes(dataset_type.value)
+    hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Create a dataset-specific checkpoint directory
     dataset_checkpoint_dir = os.path.join(CHECKPOINT_DIR, args.dataset)

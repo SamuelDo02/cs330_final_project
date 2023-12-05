@@ -6,7 +6,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 
 from data_util import load_data, DatasetType  # Ensure DatasetType is imported
-import util
+import layer_util
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
@@ -48,7 +48,7 @@ def main():
     dataset_type = DatasetType[args.dataset.upper()]
 
     # Generate hidden layer sizes based on dataset properties
-    hidden_layers_sizes = util.generate_layer_sizes(dataset_type.value)
+    hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Load training and test data
     train_loader = load_data(train=True)
