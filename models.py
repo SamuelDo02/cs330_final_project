@@ -33,7 +33,7 @@ class MLP(nn.Module):
     
 
 class ReductionMLP(nn.Module):
-    def __init__(self, original_model, copy_weights=True):
+    def __init__(self, original_model):
         super(ReductionMLP, self).__init__()
 
         new_layers = []
@@ -41,8 +41,6 @@ class ReductionMLP(nn.Module):
             if isinstance(layer, nn.Linear):
                 # Duplicate the layer
                 new_layer = nn.Linear(layer.in_features, layer.in_features)
-                if copy_weights:
-                    new_layer.load_state_dict(layer.state_dict())
 
                 # Freeze original layer weights
                 for param in layer.parameters():
@@ -99,7 +97,7 @@ def main():
         if args.load_base_model:
             original_model.load_state_dict(torch.load(args.load_base_model, map_location=DEVICE))
             original_model.to(DEVICE)
-            model = ReductionMLP(original_model, copy_weights=True).to(DEVICE)
+            model = ReductionMLP(original_model).to(DEVICE)
         else:
             raise Exception('Base MLP not provided.')
 
