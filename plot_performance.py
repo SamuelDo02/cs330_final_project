@@ -67,9 +67,21 @@ def main():
         validation_losses.append(val_loss)
         validation_accuracies.append(val_accuracy)
         
+    # Extract the directory name
+    checkpoint_dir_name = os.path.basename(os.path.normpath(args.checkpoint_dir))
+
+    # Construct the filename for saving the plot
+    plot_filename = f"{checkpoint_dir_name}_{args.model_class}_performance.png"
+
+    # Construct the plot title
+    plot_title = f"{args.model_class} Performance on {checkpoint_dir_name}"
+
     # Plotting
     epochs = range(1, len(training_losses) + 1)
     plt.figure(figsize=(12, 10))
+
+    # Update the main title of the plot
+    plt.suptitle(plot_title, fontsize=16)
 
     # Plot training loss and accuracy
     plt.subplot(2, 2, 1)
@@ -100,9 +112,11 @@ def main():
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
-
+    
     plt.tight_layout()
-    plt.show()
+    plt.subplots_adjust(top=0.90)  # Adjust top to accommodate the main title
+    # Save the plot
+    plt.savefig(plot_filename)
 
 if __name__ == "__main__":
     main()
