@@ -34,7 +34,7 @@ def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_S
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze Model Performance on MNIST')
+    parser = argparse.ArgumentParser(description='Analyze Model Performance')
     parser.add_argument('--model-file', type=str, required=True, help='Python file containing the model class (without .py extension)')
     parser.add_argument('--model-class', type=str, required=True, help='Name of the model class in the model file')
     parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], required=True, help='Dataset to use')
@@ -51,8 +51,8 @@ def main():
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Load training and test data
-    train_loader = load_data(train=True)
-    test_loader = load_data(train=False)
+    train_loader = load_data(dataset_type, train=True)
+    test_loader = load_data(dataset_type, train=False)
 
     loss_function = nn.CrossEntropyLoss()
 
@@ -65,7 +65,6 @@ def main():
     for checkpoint_file in sorted(os.listdir(args.checkpoint_dir)):
         checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_file)
         model = ModelClass(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
-        print(model.model)
         print(f'Evaluated: {checkpoint_path}')
         model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
 
