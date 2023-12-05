@@ -15,7 +15,7 @@ WEIGHT_DECAY = 0.01   # Weight decay
 NUM_EPOCHS = 300    # Number of epochs
 CHECKPOINT_INTERVAL_DEFAULT = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
-CHECKPOINT_DIR = "checkpoints/basic_mlp"  # Directory for checkpoints
+CHECKPOINT_DIR = "checkpoints"  # Directory for checkpoints
 
 # Define the MLP model
 class MLP(nn.Module):
@@ -69,7 +69,7 @@ def main():
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Create a dataset-specific checkpoint directory
-    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"basic_mlp/{args.dataset}_lr_{args.learning_rate}")
+    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"basic_mlp_lr_{args.learning_rate}_{args.dataset}")
     os.makedirs(dataset_checkpoint_dir, exist_ok=True)
 
     # Load data
