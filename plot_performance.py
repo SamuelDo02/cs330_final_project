@@ -62,7 +62,7 @@ def main():
     training_accuracies = []
     validation_accuracies = []
 
-    for checkpoint_file in sorted(os.listdir(args.checkpoint_dir), key=lambda path: (-len(path), path)):
+    for checkpoint_file in sorted(os.listdir(args.checkpoint_dir), key=lambda path: (len(path), path)):
         checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_file)
         model = ModelClass(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
         print(f'Evaluated: {checkpoint_path}')
