@@ -49,6 +49,7 @@ def main():
 
     # Generate hidden layer sizes based on dataset properties
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
+    print(hidden_layers_sizes)
 
     # Load training and test data
     train_loader = load_data(train=True)
