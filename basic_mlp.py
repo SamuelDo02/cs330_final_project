@@ -12,7 +12,7 @@ import layer_util
 LEARNING_RATE = 0.01  # Learning rate
 MOMENTUM = 0.9        # Momentum
 WEIGHT_DECAY = 0.01   # Weight decay
-NUM_EPOCHS = 10000    # Number of epochs
+NUM_EPOCHS = 300    # Number of epochs
 CHECKPOINT_INTERVAL_DEFAULT = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 CHECKPOINT_DIR = "checkpoints/basic_mlp"  # Directory for checkpoints
@@ -56,6 +56,7 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Train an MLP on different datasets')
     parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], default='FashionMNIST', help='Dataset to use')
+    parser.add_argument('--learning-rate', type=float, default=LEARNING_RATE, help='Learning rate to use.')
     parser.add_argument('--load-model', type=str, default=None, help='Path to load the pre-trained model')
     parser.add_argument('--checkpoint-interval', type=int, default=CHECKPOINT_INTERVAL_DEFAULT, help='Interval for saving model checkpoints')
     parser.add_argument('--checkpoint-dir', type=str, default=CHECKPOINT_DIR, help='Directory to save checkpoints to')
@@ -68,7 +69,7 @@ def main():
     hidden_layers_sizes = layer_util.generate_layer_sizes(dataset_type.value)
 
     # Create a dataset-specific checkpoint directory
-    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset)
+    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"basic_mlp/{args.dataset}_lr_{args.learning_rate}")
     os.makedirs(dataset_checkpoint_dir, exist_ok=True)
 
     # Load data
@@ -76,7 +77,7 @@ def main():
 
     # Initialize the model, optimizer, and loss function
     model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
+    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     loss_function = nn.CrossEntropyLoss()
 
     # Load pre-trained model if specified
