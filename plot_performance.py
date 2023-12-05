@@ -43,7 +43,7 @@ def main():
     dataset_type = DatasetType[args.dataset]
     loss_function = nn.CrossEntropyLoss()
 
-    # Data structures to store metrics for all models
+    # Store metrics for all models
     all_training_losses = {}
     all_validation_losses = {}
     all_training_accuracies = {}
@@ -78,10 +78,10 @@ def main():
                 validation_accuracies.append(val_accuracy)
 
         # Store metrics for the current model
-        all_training_losses[model_class] = training_losses
-        all_validation_losses[model_class] = validation_losses
-        all_training_accuracies[model_class] = training_accuracies
-        all_validation_accuracies[model_class] = validation_accuracies
+        all_training_losses[checkpoint_dir] = training_losses
+        all_validation_losses[checkpoint_dir] = validation_losses
+        all_training_accuracies[checkpoint_dir] = training_accuracies
+        all_validation_accuracies[checkpoint_dir] = validation_accuracies
 
     # Plotting
     epochs = range(1, len(next(iter(all_training_losses.values()))) + 1)
@@ -90,29 +90,29 @@ def main():
 
     # Plot training and validation loss for all models
     plt.subplot(2, 2, 1)
-    for model_class, losses in all_training_losses.items():
-        plt.plot(epochs, losses, '-o', label=f'{model_class} Training Loss')
+    for checkpoint_dir, losses in all_training_losses.items():
+        plt.plot(epochs, losses, '-o', label=f'{checkpoint_dir} Training Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
 
     plt.subplot(2, 2, 2)
-    for model_class, accuracies in all_training_accuracies.items():
-        plt.plot(epochs, accuracies, '-o', label=f'{model_class} Training Accuracy')
+    for checkpoint_dir, accuracies in all_training_accuracies.items():
+        plt.plot(epochs, accuracies, '-o', label=f'{checkpoint_dir} Training Accuracy')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
 
     plt.subplot(2, 2, 3)
-    for model_class, losses in all_validation_losses.items():
-        plt.plot(epochs, losses, '-o', label=f'{model_class} Validation Loss')
+    for checkpoint_dir, losses in all_validation_losses.items():
+        plt.plot(epochs, losses, '-o', label=f'{checkpoint_dir} Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
 
     plt.subplot(2, 2, 4)
-    for model_class, accuracies in all_validation_accuracies.items():
-        plt.plot(epochs, accuracies, '-o', label=f'{model_class} Validation Accuracy')
+    for checkpoint_dir, accuracies in all_validation_accuracies.items():
+        plt.plot(epochs, accuracies, '-o', label=f'{checkpoint_dir} Validation Accuracy')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()

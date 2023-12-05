@@ -21,9 +21,12 @@ CHECKPOINT_DIR = "checkpoints"  # Directory for checkpoints
 class MLP(nn.Module):
     def __init__(self, input_size, num_classes, hidden_layers):
         super(MLP, self).__init__()
+        self.num_hidden_layers = 0
+
         layers = [nn.Linear(input_size, hidden_layers[0]), nn.ReLU()]
         for i in range(len(hidden_layers) - 1):
             layers += [nn.Linear(hidden_layers[i], hidden_layers[i+1]), nn.ReLU()]
+            self.num_hidden_layers += 1
         layers += [nn.Linear(hidden_layers[-1], num_classes)]
         self.model = nn.Sequential(*layers)
 
@@ -35,6 +38,7 @@ class MLP(nn.Module):
 class ReductionMLP(nn.Module):
     def __init__(self, original_model):
         super(ReductionMLP, self).__init__()
+        self.num_hidden_layers = 0
 
         new_layers = []
         for layer in original_model.model:
@@ -48,6 +52,7 @@ class ReductionMLP(nn.Module):
 
                 # Add duplicated layer before the original layer
                 new_layers.extend([new_layer, layer])
+                self.num_hidden_layers += 2
             else:
                 # For non-linear layers, just append
                 new_layers.append(layer)
@@ -120,7 +125,7 @@ def main():
     model = init_model(dataset_type, args.model, args.load_model, args.load_base_model)
 
     # Create a dataset-specific checkpoint directory
-    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"{args.model}_lr-{args.learning_rate}_{args.dataset}")
+    dataset_checkpoint_dir = os.path.join(args.checkpoint_dir, f"{args.model}_hl-{model.num_hidden_layers}_lr-{args.learning_rate}_{args.dataset}")
     os.makedirs(dataset_checkpoint_dir, exist_ok=True)
 
     # Load data
