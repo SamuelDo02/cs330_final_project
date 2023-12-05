@@ -19,11 +19,11 @@ CHECKPOINT_DIR = "checkpoints"  # Directory for checkpoints
 
 # Define the MLP model
 class MLP(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_layers, dropout_rate=0.5):
+    def __init__(self, input_size, num_classes, hidden_layers):
         super(MLP, self).__init__()
-        layers = [nn.Linear(input_size, hidden_layers[0]), nn.ReLU(), nn.Dropout(dropout_rate)]
+        layers = [nn.Linear(input_size, hidden_layers[0]), nn.ReLU()]
         for i in range(len(hidden_layers) - 1):
-            layers += [nn.Linear(hidden_layers[i], hidden_layers[i+1]), nn.ReLU(), nn.Dropout(dropout_rate)]
+            layers += [nn.Linear(hidden_layers[i], hidden_layers[i+1]), nn.ReLU()]
         layers += [nn.Linear(hidden_layers[-1], num_classes)]
         self.model = nn.Sequential(*layers)
 
