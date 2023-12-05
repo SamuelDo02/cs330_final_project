@@ -97,7 +97,7 @@ def main():
         hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
         original_model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes)
         if args.load_base_model:
-            original_model.load_state_dict(torch.load(args.original_model, map_location=DEVICE))
+            original_model.load_state_dict(torch.load(args.load_base_model, map_location=DEVICE))
             original_model.to(DEVICE)
             model = ReductionMLP(original_model, copy_weights=True).to(DEVICE)
         else:
