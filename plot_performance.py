@@ -1,9 +1,11 @@
 import os
 import argparse
 import importlib
+import concurrent.futures
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 from util.data_util import load_data, DatasetType  # Ensure DatasetType is imported
 import util.net_util as net_util
@@ -34,6 +36,22 @@ def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_S
     return total_loss, accuracy
 
 
+def evaluate_checkpoint(model_class, dataset_type, checkpoint_dir, checkpoint_file, train_loader, test_loader, loss_function):
+    checkpoint_path = os.path.join(checkpoint_dir, checkpoint_file)
+    print(f'Evaluating: {checkpoint_path}')
+
+    # Load model weights from checkpoint
+    model = models.init_model(dataset_type, model_class, checkpoint_path)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
+    model.to(DEVICE)
+
+    with torch.no_grad():
+        train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
+        val_loss, val_accuracy = evaluate(model, DEVICE, test_loader, loss_function)
+
+    return checkpoint_file, train_loss, train_accuracy, val_loss, val_accuracy
+
+
 def main():
     parser = argparse.ArgumentParser(description='Analyze Model Performance')
     parser.add_argument('--model-info', type=str, nargs='+', required=True, help='Space-separated list of model_class:checkpoint_dir')
@@ -44,7 +62,7 @@ def main():
     loss_function = nn.CrossEntropyLoss()
 
     # Store metrics for all models
-    all_training_losses = {}
+    all_training_losses = defaultdict()
     all_validation_losses = {}
     all_training_accuracies = {}
     all_validation_accuracies = {}
@@ -55,32 +73,34 @@ def main():
         train_loader = load_data(dataset_type, train=True)
         test_loader = load_data(dataset_type, train=False)
 
+        # Initialize empty lists for each metric
         training_losses = []
         validation_losses = []
         training_accuracies = []
         validation_accuracies = []
 
-        for checkpoint_file in sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path)):
-            checkpoint_path = os.path.join(checkpoint_dir, checkpoint_file)
-            print(f'Evaluated: {checkpoint_path}')
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            # Generate all checkpoint file paths
+            checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
+            futures = [executor.map(evaluate_checkpoint, 
+                                    model_class, 
+                                    dataset_type, 
+                                    checkpoint_dir, 
+                                    checkpoint, 
+                                    train_loader, 
+                                    test_loader, 
+                                    loss_function) for checkpoint in checkpoints]
 
-            # Load model weights from checkpoint
-            model = models.init_model(dataset_type, model_class, checkpoint_path)
-            model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
-
-            with torch.no_grad():
-                train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
+            for future in concurrent.futures.as_completed(futures):
+                _, train_loss, train_accuracy, val_loss, val_accuracy = future.result()
                 training_losses.append(train_loss)
-                training_accuracies.append(train_accuracy)
-
-                val_loss, val_accuracy = evaluate(model, DEVICE, test_loader, loss_function)
                 validation_losses.append(val_loss)
+                training_accuracies.append(train_accuracy)
                 validation_accuracies.append(val_accuracy)
 
-        # Store metrics for the current model
         all_training_losses[checkpoint_dir] = training_losses
-        all_validation_losses[checkpoint_dir] = validation_losses
         all_training_accuracies[checkpoint_dir] = training_accuracies
+        all_validation_losses[checkpoint_dir] = validation_losses
         all_validation_accuracies[checkpoint_dir] = validation_accuracies
 
     # Plotting
