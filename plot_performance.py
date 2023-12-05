@@ -72,6 +72,7 @@ def evaluate_checkpoint(model_class,
         train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
         val_loss, val_accuracy = evaluate(model, DEVICE, test_loader, loss_function)
 
+    print(f"{eval_metadata.checkpoint_idx} done")
     return EvalResult(eval_metadata, train_loss, train_accuracy, val_loss, val_accuracy)
 
 
