@@ -11,6 +11,7 @@ import layer_util
 # Constants
 LEARNING_RATE = 0.01  # Learning rate
 MOMENTUM = 0.9        # Momentum
+WEIGHT_DECAY = 0.01   # Weight decay
 NUM_EPOCHS = 10000    # Number of epochs
 CHECKPOINT_INTERVAL_DEFAULT = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
@@ -18,11 +19,11 @@ CHECKPOINT_DIR = "checkpoints/basic_mlp"  # Directory for checkpoints
 
 # Define the MLP model
 class MLP(nn.Module):
-    def __init__(self, input_size, num_classes, hidden_layers):
+    def __init__(self, input_size, num_classes, hidden_layers, dropout_rate=0.5):
         super(MLP, self).__init__()
-        layers = [nn.Linear(input_size, hidden_layers[0]), nn.ReLU()]
+        layers = [nn.Linear(input_size, hidden_layers[0]), nn.ReLU(), nn.Dropout(dropout_rate)]
         for i in range(len(hidden_layers) - 1):
-            layers += [nn.Linear(hidden_layers[i], hidden_layers[i+1]), nn.ReLU()]
+            layers += [nn.Linear(hidden_layers[i], hidden_layers[i+1]), nn.ReLU(), nn.Dropout(dropout_rate)]
         layers += [nn.Linear(hidden_layers[-1], num_classes)]
         self.model = nn.Sequential(*layers)
 
@@ -74,7 +75,7 @@ def main():
 
     # Initialize the model, optimizer, and loss function
     model = MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layers_sizes).to(DEVICE)
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     loss_function = nn.CrossEntropyLoss()
 
     # Load pre-trained model if specified
