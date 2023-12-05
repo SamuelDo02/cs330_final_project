@@ -90,7 +90,7 @@ def init_model(dataset_type: DatasetType,
         
     # Load pre-trained model if specified
     if load_model:
-        model.load_state_dict(torch.load(load_model, map_location=DEVICE))
+        model.load_state_dict(torch.load(load_model, map_location=device))
 
     return model
 
