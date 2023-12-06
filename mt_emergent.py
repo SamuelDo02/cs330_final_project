@@ -15,9 +15,9 @@ import util.data_util as data_util
 import util.net_util as net_util
 
 # Constants
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.004
 MOMENTUM = 0.9 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 50
 CHECKPOINT_INTERVAL_DEFAULT = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 CHECKPOINT_DIR = "checkpoints"  # Directory for checkpoints
