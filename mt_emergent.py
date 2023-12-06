@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from typing import List
 from enum import Enum, auto
+import matplotlib.pyplot as plt
 import argparse
 import os
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -86,9 +89,145 @@ class MTEmergentModel(nn.Module):
             pass
 
         return x
+    
+
+# --- EVAL ---
+@dataclass
+class EvalMetadata:
+    checkpoint_dir : str
+    checkpoint_file : str
+    checkpoint_idx : int
 
 
-# --- RUN TRAIN ---
+@dataclass
+class EvalResult:
+    metadata : EvalMetadata
+
+    train_loss : float
+    train_accuracy : float
+    val_loss : float
+    val_accuracy : float
+
+
+def evaluate(model, mode, device, data_loader, loss_function, subset_size=1000):
+    model.eval()
+    total_loss = 0
+    correct = 0
+    count = 0
+    with torch.no_grad():
+        for data, target in data_loader:
+            # Evaluate only on a subset
+            if count >= subset_size:
+                break
+            data, target = data.to(device), target.to(device)
+            output = model.forward(data, mode)
+            total_loss += loss_function(output, target).item()
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            count += len(data)
+    total_loss /= subset_size
+    accuracy = 100. * correct / subset_size
+    return total_loss, accuracy
+
+
+def evaluate_checkpoint(mode,
+                        dataset_type,
+                        eval_metadata : EvalMetadata,
+                        train_loader, 
+                        test_loader, 
+                        loss_function):
+    checkpoint_path = os.path.join(eval_metadata.checkpoint_dir, eval_metadata.checkpoint_file)
+
+    # Load model weights from checkpoint
+    hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
+    model = MTEmergentModel(dataset_type.value.input_size, 
+                            dataset_type.value.num_classes, 
+                            hidden_layers_sizes).to(DEVICE)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
+
+    with torch.no_grad():
+        train_loss, train_accuracy = evaluate(model, mode, DEVICE, train_loader, loss_function)
+        val_loss, val_accuracy = evaluate(model, mode, DEVICE, test_loader, loss_function)
+
+    return EvalResult(eval_metadata, train_loss, train_accuracy, val_loss, val_accuracy)
+
+
+def plot_eval(mode_infos,
+              dataset_type):
+    loss_function = nn.CrossEntropyLoss()
+
+    metrics = {}
+
+    # Ensure no mode errors
+    for mode_info in mode_infos:
+        mode, checkpoint_dir = mode_info.split(':')
+        mode = MTEmergentMode[mode]
+
+    for mode_info in mode_infos:
+        mode, checkpoint_dir = mode_info.split(':')
+        mode = MTEmergentMode[mode]
+
+        train_loader = data_util.load_data(dataset_type, train=True)
+        test_loader = data_util.load_data(dataset_type, train=False)
+
+        checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
+        metrics[mode] = [None] * len(checkpoints)
+
+        for i in tqdm(range(len(checkpoints))):
+            checkpoint = checkpoints[i]
+            eval_metadata = EvalMetadata(checkpoint_dir, checkpoint, i)
+            eval_result = evaluate_checkpoint(mode, dataset_type, eval_metadata, train_loader, test_loader, loss_function)
+            metrics[mode][i] = eval_result
+
+    # Plotting
+    num_epochs = min(len(metrics[config_str]) for config_str in metrics)
+    epochs = range(1, num_epochs + 1)
+    plt.figure(figsize=(12, 10))
+    plt.suptitle(f"Model Performance on {dataset_type.name}", fontsize=16)
+
+    # Plot training and validation loss for all models
+    plt.subplot(2, 2, 1)
+    plt.title('Training Loss')
+    for config_str in metrics:
+        losses = [metrics[config_str][i].train_loss for i in range(num_epochs)]
+        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.subplot(2, 2, 2)
+    plt.title('Training Accuracy')
+    for config_str in metrics:
+        accuracies = [metrics[config_str][i].train_accuracy for i in range(num_epochs)]
+        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+
+    plt.subplot(2, 2, 3)
+    plt.title('Validation Loss')
+    for config_str in metrics:
+        losses = [metrics[config_str][i].val_loss for i in range(num_epochs)]
+        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.subplot(2, 2, 4)
+    plt.title('Validation Accuracy')
+    for config_str in metrics:
+        accuracies = [metrics[config_str][i].val_accuracy for i in range(num_epochs)]
+        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.90)
+    plt.savefig(f"models_performance_{dataset_type.name}.png")
+
+
+# --- TRAIN ---
 def train(model, 
           mode,
           device, 
@@ -134,12 +273,18 @@ def main():
     parser.add_argument('--load-model', type=str, default=None, help='Path to load the pre-trained model')
     parser.add_argument('--checkpoint-interval', type=int, default=CHECKPOINT_INTERVAL_DEFAULT, help='Interval for saving model checkpoints')
     parser.add_argument('--checkpoint-dir', type=str, default=CHECKPOINT_DIR, help='Directory to save checkpoints to')
+    parser.add_argument('--eval', type=str, nargs='+', help='Space-separated list of model:checkpoint_dir')
 
     args = parser.parse_args()
 
     # Convert arguments to enums
     dataset_type = data_util.DatasetType[args.dataset]
     mode = MTEmergentMode[args.mode.upper()]
+
+    # Swap to plotting
+    if args.eval != None:
+        plot_eval(args.eval, dataset_type)
+        return
 
     # Create model
     hidden_layers_sizes = net_util.generate_layer_sizes(dataset_type.value)
