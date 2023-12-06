@@ -158,14 +158,14 @@ def plot_eval(mode_infos,
 
     metrics = {}
 
-    # Ensure no mode errors
+    # Ensure no mode errors by running first
     for mode_info in mode_infos:
         mode, checkpoint_dir = mode_info.split(':')
-        mode = MTEmergentMode[mode]
+        mode = MTEmergentMode[mode.upper()]
 
     for mode_info in mode_infos:
         mode, checkpoint_dir = mode_info.split(':')
-        mode = MTEmergentMode[mode]
+        mode = MTEmergentMode[mode.upper()]
 
         train_loader = data_util.load_data(dataset_type, train=True)
         test_loader = data_util.load_data(dataset_type, train=False)
