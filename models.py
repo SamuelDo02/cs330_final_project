@@ -87,14 +87,10 @@ def init_model(dataset_type: DatasetType,
             raise Exception('Base MLP not provided.')
         
         model = ReductionMLP(original_model).to(device)
-
-    print('Before loadingx')
         
     # Load pre-trained model if specified
     if load_model:
         model.load_state_dict(torch.load(load_model, map_location=device))
-
-    print('After loading')
 
     return model
 

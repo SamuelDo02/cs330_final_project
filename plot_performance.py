@@ -59,18 +59,14 @@ def evaluate_checkpoint(model_class,
                         test_loader, 
                         loss_function):
     checkpoint_path = os.path.join(eval_metadata.checkpoint_dir, eval_metadata.checkpoint_file)
-    print(f'Evaluating: {checkpoint_path}')
 
     # Load model weights from checkpoint
     model = models.init_model(dataset_type, model_class, checkpoint_path, device=DEVICE)
-    print(f"Init model for {eval_metadata.checkpoint_idx}")
-    print(f"Loaded model for {eval_metadata.checkpoint_idx}")
 
     with torch.no_grad():
         train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
         val_loss, val_accuracy = evaluate(model, DEVICE, test_loader, loss_function)
 
-    print(f"{eval_metadata.checkpoint_idx} done")
     return EvalResult(eval_metadata, train_loss, train_accuracy, val_loss, val_accuracy)
 
 
@@ -100,7 +96,7 @@ def main():
             metrics[checkpoint_dir][i] = eval_result
 
     # Plotting
-    num_epochs = min([metrics[config_str] for config_str in metrics], key=len)
+    num_epochs = min(len(metrics[config_str]) for config_str in metrics)
     epochs = range(1, num_epochs + 1)
     plt.figure(figsize=(12, 10))
     plt.suptitle(f"Model Performance on {dataset_type.name}", fontsize=16)
@@ -110,7 +106,7 @@ def main():
     plt.title('Training Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].train_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{checkpoint_dir}')
+        plt.plot(epochs, losses, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -119,7 +115,7 @@ def main():
     plt.title('Training Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].train_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{checkpoint_dir}')
+        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
@@ -128,7 +124,7 @@ def main():
     plt.title('Validation Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].val_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{checkpoint_dir}')
+        plt.plot(epochs, losses, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -137,7 +133,7 @@ def main():
     plt.title('Validation Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].val_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{checkpoint_dir}')
+        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
