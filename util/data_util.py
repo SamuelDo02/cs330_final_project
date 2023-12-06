@@ -15,8 +15,8 @@ class DatasetProperties:
 
 
 class DatasetType(Enum):
-    FashionMNIST = DatasetProperties(
-        dataset_class=datasets.FashionMNIST,
+    MNIST = DatasetProperties(
+        dataset_class=datasets.MNIST,
         input_size=28 * 28,
         num_classes=10,
         transform=transforms.Compose([
@@ -24,14 +24,12 @@ class DatasetType(Enum):
             transforms.Normalize((0.5,), (0.5,))
         ])
     )
-    FashionMNISTTransformed = DatasetProperties(
-        dataset_class=datasets.FashionMNIST,
+    KMNIST = DatasetProperties(
+        dataset_class=datasets.KMNIST,
         input_size=28 * 28,
         num_classes=10,
         transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.RandomRotation(degrees=180),  # Random rotations
-            transforms.RandomResizedCrop(size=28, scale=(0.8, 1.0)),  # Random scaling, keeping image size 28x28
             transforms.Normalize((0.5,), (0.5,))
         ])
     )
