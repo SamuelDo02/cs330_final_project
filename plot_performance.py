@@ -6,6 +6,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from collections import defaultdict
+import tqdm
 
 from util.data_util import load_data, DatasetType  # Ensure DatasetType is imported
 import util.net_util as net_util
@@ -90,7 +91,8 @@ def main():
         checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
         metrics[checkpoint_dir] = [None] * len(checkpoints)
 
-        for i, checkpoint in enumerate(checkpoints):
+        for i in tqdm(range(len(checkpoints))):
+            checkpoint = checkpoints[i]
             eval_metadata = EvalMetadata(checkpoint_dir, checkpoint, i)
             eval_result = evaluate_checkpoint(model_class, dataset_type, eval_metadata, train_loader, test_loader, loss_function)
             metrics[checkpoint_dir][i] = eval_result
