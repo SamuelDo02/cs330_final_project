@@ -6,7 +6,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from collections import defaultdict
-import tqdm
+from tqdm import tqdm
 
 from util.data_util import load_data, DatasetType  # Ensure DatasetType is imported
 import util.net_util as net_util
