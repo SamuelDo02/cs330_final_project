@@ -66,8 +66,6 @@ def evaluate_checkpoint(model_class,
     # Load model weights from checkpoint
     model = models.init_model(dataset_type, model_class, checkpoint_path, device=DEVICE)
     print(f"Init model for {eval_metadata.checkpoint_idx}")
-    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
-    model.to(DEVICE)
     print(f"Loaded model for {eval_metadata.checkpoint_idx}")
 
     with torch.no_grad():
@@ -114,21 +112,6 @@ def main():
             for future in concurrent.futures.as_completed(futures):
                 eval_result : EvalResult = future.result()
                 metrics[checkpoint_dir][eval_result.metadata.checkpoint_idx] = eval_result
-
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            # Generate all checkpoint file paths
-            checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
-            futures = [executor.submit(evaluate_checkpoint, 
-                                        model_class, 
-                                        dataset_type, 
-                                        checkpoint_dir, 
-                                        checkpoint, 
-                                        train_loader, 
-                                        test_loader, 
-                                        loss_function) for checkpoint in checkpoints]
-
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
 
     # Plotting
     num_epochs = min([metrics[config_str] for config_str in metrics], key=len)

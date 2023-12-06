@@ -94,6 +94,8 @@ def init_model(dataset_type: DatasetType,
     if load_model:
         model.load_state_dict(torch.load(load_model, map_location=device))
 
+    print('After loading')
+
     return model
 
 
