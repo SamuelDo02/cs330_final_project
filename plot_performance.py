@@ -67,6 +67,7 @@ def evaluate_checkpoint(model_class,
     model = models.init_model(dataset_type, model_class, checkpoint_path, device=DEVICE)
     model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
     model.to(DEVICE)
+    print(f"Loaded model for {eval_metadata.checkpoint_idx}")
 
     with torch.no_grad():
         train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
