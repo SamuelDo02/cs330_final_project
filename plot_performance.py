@@ -1,7 +1,6 @@
 import os
 import argparse
 import importlib
-import concurrent.futures
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -12,8 +11,7 @@ from util.data_util import load_data, DatasetType  # Ensure DatasetType is impor
 import util.net_util as net_util
 import models
 
-# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
-DEVICE = "cpu"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 VALIDATION_SUBSET_SIZE = 1000
 
 def evaluate(model, device, data_loader, loss_function, subset_size=VALIDATION_SUBSET_SIZE):
@@ -96,22 +94,10 @@ def main():
         checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
         metrics[checkpoint_dir] = [None] * len(checkpoints)
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            futures = []
-            for i, checkpoint in enumerate(checkpoints):
-                eval_metadata = EvalMetadata(checkpoint_dir, checkpoint, i)
-                future = executor.submit(evaluate_checkpoint, 
-                                         model_class, 
-                                         dataset_type, 
-                                         eval_metadata, 
-                                         train_loader, 
-                                         test_loader, 
-                                         loss_function)
-                futures.append(future)
-            
-            for future in concurrent.futures.as_completed(futures):
-                eval_result : EvalResult = future.result()
-                metrics[checkpoint_dir][eval_result.metadata.checkpoint_idx] = eval_result
+        for i, checkpoint in enumerate(checkpoints):
+            eval_metadata = EvalMetadata(checkpoint_dir, checkpoint, i)
+            eval_result = evaluate_checkpoint(model_class, dataset_type, eval_metadata, train_loader, test_loader, loss_function)
+            metrics[checkpoint_dir][i] = eval_result
 
     # Plotting
     num_epochs = min([metrics[config_str] for config_str in metrics], key=len)
