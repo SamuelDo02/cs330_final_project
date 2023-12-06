@@ -190,7 +190,7 @@ def plot_eval(mode_infos,
     plt.title('Training Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].train_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+        plt.scatter(epochs, losses, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -199,7 +199,7 @@ def plot_eval(mode_infos,
     plt.title('Training Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].train_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+        plt.scatter(epochs, accuracies, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
@@ -208,7 +208,7 @@ def plot_eval(mode_infos,
     plt.title('Validation Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].val_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+        plt.scatter(epochs, losses, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -217,7 +217,7 @@ def plot_eval(mode_infos,
     plt.title('Validation Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].val_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+        plt.scatter(epochs, accuracies, '-o', label=f'{config_str}')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
