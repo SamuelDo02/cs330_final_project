@@ -1,4 +1,4 @@
-data/file
+data/
 *.pt
 *.pyc
 *.gz
