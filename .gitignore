@@ -1,3 +1,4 @@
 data/file
 *.pt
 *.pyc
+*.gz
