@@ -1,0 +1,7 @@
+MNIST MLP BASE: python3 util/train_model.py --model-type MLP --dataset MNIST --checkpoint-dir analysis/reduction_intuition/checkpoints/MNIST_MLP_BASE --epochs 25 --lr 0.0005
+
+KMNIST MLP SAME CAPACITY: python3 util/train_model.py --model-type LinearReductionMLP --dataset KMNIST --checkpoint-dir analysis/reduction_intuition/checkpoints/KMNIST_MLP_SAME_CAPACITY --epochs 25 --lr 0.0005 --num-reductions 1
+
+MNIST REDUCTION KMNIST: python3 util/train_model.py --model-type LinearReductionMLP --dataset KMNIST --checkpoint-dir analysis/reduction_intuition/checkpoints/KMNIST_MLP_REDUCTION --epochs 25 --lr 0.0005 --load-base-model analysis/reduction_intuition/checkpoints/MNIST_MLP_BASE/checkpoint_epoch_25_batch_0.pt --num-reductions 1
+
+MNIST REDUCTION RotatedMNIST: python3 util/train_model.py --model-type LinearReductionMLP --dataset RotatedMNIST --checkpoint-dir analysis/reduction_intuition/checkpoints/RotatedMNIST_MLP_REDUCTION --epochs 25 --lr 0.0005 --load-base-model analysis/reduction_intuition/checkpoints/MNIST_MLP_BASE/checkpoint_epoch_25_batch_0.pt --num-reductions 1

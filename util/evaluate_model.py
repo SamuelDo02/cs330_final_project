@@ -8,9 +8,8 @@ from dataclasses import dataclass
 from collections import defaultdict
 from tqdm import tqdm
 
-from util.data_util import load_data, DatasetType  # Ensure DatasetType is imported
-import util.net_util as net_util
-import models
+import data_util, net_util
+import train_model as models
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Device configuration
 VALIDATION_SUBSET_SIZE = 1000
@@ -53,17 +52,27 @@ class EvalResult:
     val_accuracy : float
 
 
-def evaluate_checkpoint(model_class, 
+def evaluate_checkpoint(model_type, 
                         dataset_type,
                         eval_metadata : EvalMetadata,
                         train_loader, 
                         test_loader, 
-                        loss_function):
+                        loss_function,
+                        num_reductions):
     checkpoint_path = os.path.join(eval_metadata.checkpoint_dir, eval_metadata.checkpoint_file)
 
-    # Load model weights from checkpoint
-    model = models.init_model(dataset_type, model_class, checkpoint_path, device=DEVICE)
+    # Load model from checkpoint
+    hidden_layer_sizes = net_util.generate_layer_sizes(dataset_type.value)
 
+    if model_type == 'MLP':
+        model = models.MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layer_sizes).to(DEVICE)
+    elif model_type == 'LinearReductionMLP':
+        base_model = models.MLP(dataset_type.value.input_size, dataset_type.value.num_classes, hidden_layer_sizes).to(DEVICE)
+        model = models.LinearReductionMLP(base_model, num_reductions).to(DEVICE)
+
+    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
+
+    # Evaluate model
     with torch.no_grad():
         train_loss, train_accuracy = evaluate(model, DEVICE, train_loader, loss_function)
         val_loss, val_accuracy = evaluate(model, DEVICE, test_loader, loss_function)
@@ -73,20 +82,31 @@ def evaluate_checkpoint(model_class,
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze Model Performance')
-    parser.add_argument('--model-info', type=str, nargs='+', required=True, help='Space-separated list of model_class:checkpoint_dir')
-    parser.add_argument('--dataset', type=str, choices=['FashionMNIST', 'CIFAR10'], required=True, help='Dataset to use')
+    parser.add_argument('--plot-title', type=str, nargs='+', required=True)
+    parser.add_argument('--model-info', type=str, nargs='+', required=True, help='Space-separated list of model_type:dataset:label:num_reductions:checkpoint_dir')
     args = parser.parse_args()
 
-    dataset_type = DatasetType[args.dataset]
-    loss_function = nn.CrossEntropyLoss()
+    args.plot_title = ' '.join(args.plot_title)
+    print(f'Creating plot {args.plot_title}...')
 
+    # Verify that all information is valid
+    for model_info in args.model_info:
+        model_type, dataset, label, num_reductions, checkpoint_dir = model_info.split(':')
+        assert model_type in ['MLP', 'LinearReductionMLP']
+        assert dataset in [type.name for type in data_util.DatasetType]
+        assert os.path.isdir(checkpoint_dir)
+        check = int(num_reductions)
+
+    loss_function = nn.CrossEntropyLoss()
     metrics = {}
+    config_to_label = {}
 
     for model_info in args.model_info:
-        model_class, checkpoint_dir = model_info.split(':')
+        model_type, dataset, label, num_reductions, checkpoint_dir = model_info.split(':')
 
-        train_loader = load_data(dataset_type, train=True)
-        test_loader = load_data(dataset_type, train=False)
+        dataset_type = data_util.DatasetType[dataset]
+        train_loader = data_util.load_data(dataset_type, train=True)
+        test_loader = data_util.load_data(dataset_type, train=False)
 
         checkpoints = sorted(os.listdir(checkpoint_dir), key=lambda path: (len(path), path))
         metrics[checkpoint_dir] = [None] * len(checkpoints)
@@ -94,21 +114,23 @@ def main():
         for i in tqdm(range(len(checkpoints))):
             checkpoint = checkpoints[i]
             eval_metadata = EvalMetadata(checkpoint_dir, checkpoint, i)
-            eval_result = evaluate_checkpoint(model_class, dataset_type, eval_metadata, train_loader, test_loader, loss_function)
+            eval_result = evaluate_checkpoint(model_type, dataset_type, eval_metadata, train_loader, test_loader, loss_function, int(num_reductions))
             metrics[checkpoint_dir][i] = eval_result
+
+        config_to_label[checkpoint_dir] = label
 
     # Plotting
     num_epochs = min(len(metrics[config_str]) for config_str in metrics)
     epochs = range(1, num_epochs + 1)
     plt.figure(figsize=(12, 10))
-    plt.suptitle(f"Model Performance on {dataset_type.name}", fontsize=16)
+    plt.suptitle(args.plot_title, fontsize=16)
 
     # Plot training and validation loss for all models
     plt.subplot(2, 2, 1)
     plt.title('Training Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].train_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+        plt.plot(epochs, losses, '-o', label=config_to_label[config_str])
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -117,7 +139,7 @@ def main():
     plt.title('Training Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].train_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+        plt.plot(epochs, accuracies, '-o', label=config_to_label[config_str])
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
@@ -126,7 +148,7 @@ def main():
     plt.title('Validation Loss')
     for config_str in metrics:
         losses = [metrics[config_str][i].val_loss for i in range(num_epochs)]
-        plt.plot(epochs, losses, '-o', label=f'{config_str}')
+        plt.plot(epochs, losses, '-o', label=config_to_label[config_str])
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
@@ -135,14 +157,14 @@ def main():
     plt.title('Validation Accuracy')
     for config_str in metrics:
         accuracies = [metrics[config_str][i].val_accuracy for i in range(num_epochs)]
-        plt.plot(epochs, accuracies, '-o', label=f'{config_str}')
+        plt.plot(epochs, accuracies, '-o', label=config_to_label[config_str])
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
     plt.legend()
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.90)
-    plt.savefig(f"models_performance_{dataset_type.name}.png")
+    plt.savefig(f"models_performance_{args.plot_title}.png")
 
 if __name__ == "__main__":
     main()

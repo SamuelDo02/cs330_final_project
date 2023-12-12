@@ -1,0 +1,10 @@
+MNIST MLP: python3 util/train_model.py --model-type MLP --dataset MNIST --checkpoint-dir analysis/fine_tuning_similarity/checkpoints/MNIST_MLP --epochs 25 --lr 0.00005
+
+MNIST FT FULL: python3 util/train_model.py --model-type MLP --dataset MNIST --checkpoint-dir analysis/fine_tuning_similarity/checkpoints/MNIST_FT_FULL --epochs 25 --lr 0.00005 --load-model analysis/fine_tuning_similarity/checkpoints/MNIST_MLP/checkpoint_epoch_25_batch_0.pt --fine-tune-range -1 -1
+
+KMNIST FT FULL: python3 util/train_model.py --model-type MLP --dataset KMNIST --checkpoint-dir analysis/fine_tuning_similarity/checkpoints/KMNIST_FT_FULL --epochs 25 --lr 0.00005 --load-model
+ analysis/fine_tuning_similarity/checkpoints/MNIST_MLP/checkpoint_epoch_25_batch_0.pt --fine-tune-range -1 -1
+
+FashionMNIST FT FULL: python3 util/train_model.py --model-type MLP --dataset FashionMNIST --checkpoint-dir analysis/fine_tuning_similarity/checkpoints/FashionMNIST_FT_FULL --epochs 25 --lr 0.00005 --load-model analysis/fine_tuning_similarity/checkpoints/MNIST_MLP/checkpoint_epoch_25_batch_0.pt --fine-tune-range -1 -1
+
+PLOT: python3 util/evaluate_model.py --plot-title Full Fine-Tuning Performance Across Varying Tasks --model-info MLP:MNIST:MNIST:0:analysis/fine_tuning_similarity/checkpoints/MNIST_FT_FULL MLP:KMNIST:KMNIST:0:analysis/fine_tuning_similarity/checkpoints/KMNIST_FT_FULL MLP:FashionMNIST:FashionMNIST:0:analysis/fine_tuning_similarity/checkpoints/FashionMNIST_FT_FULL
